@@ -27,7 +27,7 @@ class Product:
                 product.model,
                 product.manufacturer_id,
                 product.price,
-                product.image_path
+                product.image_path if product.image_path else ''
             ))
             product_id = self.connector.cursor.lastrowid
 
@@ -69,11 +69,13 @@ class Product:
                 )
 
             #gallery
-            for idx, gallery_image_path in enumerate(product.gallery_path, start=1):
-                self.connector.execute(
-                    "INSERT INTO oc_product_image (product_id, image, sort_order) VALUES (%s, %s, %s)",
-                    (product_id, gallery_image_path, idx)
-                )
+            if product.gallery_path:
+                for idx, gallery_image_path in enumerate(product.gallery_path, start=1):
+                    if gallery_image_path:
+                        self.connector.execute(
+                            "INSERT INTO oc_product_image (product_id, image, sort_order) VALUES (%s, %s, %s)",
+                            (product_id, gallery_image_path, idx)
+                        )
 
             #store
             product_store_query = """

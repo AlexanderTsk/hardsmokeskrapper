@@ -20,7 +20,11 @@ class PlaywrightBrowser:
             
             parsed_products = []
             for link in product_links:
-                parsed_product = await self._parse_product(link, page)
+                try:
+                    parsed_product = await self._parse_product(link, page)
+                except:
+                    print(f"Failed to parse product: {link}")
+                    continue
 
                 if self.name_regex and not re.search(self.name_regex, parsed_product.name, re.IGNORECASE):
                     continue  

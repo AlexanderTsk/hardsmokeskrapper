@@ -25,7 +25,7 @@ class Normalizer:
             "Купити $name в інтернет-магазині AltSmoke ✔️ Вигідна ціна ✔️ Швидка доставка по Україні"
         )
         self.meta_keywords_template = Template(
-            "$name, купити $name, Alt Smoke Україна, інтернет-магазин кальянів"
+            "купити $name, Alt Smoke Україна, інтернет-магазин кальянів"
         )
 
     def normalize(
@@ -61,22 +61,38 @@ class Normalizer:
                     if internal_attribute:
                         attribute_ids.append(internal_attribute['attribute_id'])
                     else:
-                        new_attribute_id = attribute_db.addAttribute(internal_group['attribute_group_id'], attribute)
-                        attribute_ids.append(new_attribute_id)
+                        try:
+                            new_attribute_id = attribute_db.addAttribute(internal_group['attribute_group_id'], attribute)
+                            attribute_ids.append(new_attribute_id)
+                        except:
+                            print(f"Failed to add attribute: {attribute}")
 
         soup = BeautifulSoup(parsed_product.description, "html.parser")
         for img in soup.find_all("img"):
             img.decompose()
 
+        for a in soup.find_all("a"):
+            a.unwrap()
+
         clean_description = soup.decode_contents()
         clean_description = re.sub(r"HardSmoke", "Alt Smoke", clean_description, flags=re.IGNORECASE)
 
-        main_image_path = self.image_saver.save_image(parsed_product.image, f"product-{model}")
+        main_image_path = None
+        try:
+            if parsed_product.image:
+                main_image_path = self.image_saver.save_image(parsed_product.image, f"product-{model}")
+        except Exception as e:
+            print(f"[WARN] Failed to store image for {parsed_product.name}: {e}")
 
         gallery_path = []
         for idx, image_url in enumerate(parsed_product.gallery, start=1):
-            image_path = self.image_saver.save_image(image_url, f"product-{model}-gallery-{idx}")
-            gallery_path.append(image_path)
+            try:
+                if image_url:
+                    image_path = self.image_saver.save_image(image_url, f"product-{model}-gallery-{idx}")
+                    gallery_path.append(image_path)
+            except Exception as e:
+                print(f"[WARN] Failed to store gallery image {idx} for {parsed_product.name}: {e}")
+
 
 
         return NormalizedProduct(

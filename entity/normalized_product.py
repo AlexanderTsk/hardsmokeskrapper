@@ -17,7 +17,7 @@ class NormalizedProduct:
     catrgories_ids: list[int]
     attribute_ids: list[int]
 
-    image_path: str
-    gallery_path: list[str]
+    image_path: str | None
+    gallery_path: list[str] | None
 
     seo_url: str
